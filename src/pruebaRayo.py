@@ -5,7 +5,7 @@ url = 'https://es.trustpilot.com/review/www.airbnb.es'
 respuesta = requests.get(url)
 page = 1
 
-articulos_completos = []  
+articulos_limpios = []  
 
 while respuesta.status_code == 200:
     sopa = BeautifulSoup(respuesta.text, 'html.parser')
@@ -21,15 +21,15 @@ while respuesta.status_code == 200:
         comentario_tag = articulo.find('p', class_='CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_body-l__dd9b51')
         comentario = comentario_tag.get_text() if comentario_tag else 'Sin comentario'
 
-        articulos_completos.append((titulo, comentario, puntaje))
+        articulos_limpios.append((titulo, comentario, puntaje))
     page += 1
     url = f'https://es.trustpilot.com/review/www.airbnb.es?page={page}'
     respuesta = requests.get(url)
 
 # Guardar los comentarios
-if articulos_completos:
+if articulos_limpios:
     with open('comentarios.txt', 'w', encoding='utf-8') as f:
-        for titulo, comentario, puntaje in articulos_completos:
+        for titulo, comentario, puntaje in articulos_limpios:
             f.write(f'Título: {titulo}\nComentario: {comentario}\nPuntaje: {puntaje}\n\n')
 
 
