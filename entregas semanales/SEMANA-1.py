@@ -1,11 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd  
+import re
 
-url = 'https://es.trustpilot.com/review/www.airbnb.es'
+url = 'https://www.trustpilot.com/review/www.airbnb.com'
 respuesta = requests.get(url)
 page = 1
-
 
 articulos_completos = []  
 
@@ -32,14 +32,23 @@ while respuesta.status_code == 200:
         })
     
     page += 1
-    url = f'https://es.trustpilot.com/review/www.airbnb.es?page={page}'
+    url = f'https://www.trustpilot.com/review/www.airbnb.com?page={page}'
     respuesta = requests.get(url)
 
 # Convertir a DataFrame
 df = pd.DataFrame(articulos_completos)
+
+#Agregar índice con número de reseña (arranca en 1)
+df.insert(0, "N° Reseña", range(1, len(df) + 1))
+
+#Crear columna con el número de estrellas (extraer solo el número antes de "out")
+df["Puntaje (estrellas)"] = df["Puntaje"].apply(
+    lambda x: int(re.search(r"(\d+)", x).group(1)) if re.search(r"(\d+)", x) else None
+)
 
 # Mostrar en consola
 print(df.head())
 
 # Guardar en CSV
 df.to_csv("comentarios.csv", index=False, encoding="utf-8-sig")
+print("Archivo guardado como comentarios.csv")
