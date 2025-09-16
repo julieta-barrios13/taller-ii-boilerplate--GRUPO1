@@ -9,7 +9,7 @@ if response.status_code == 200:
     data = response.json()
     productos = data["products"]
 
-    df = pd.DataFrame(productos)[["id", "title", "description", "rating", "price", "category"]]
+    df = pd.DataFrame(productos)[["id","title", "description", "rating", "price", "category"]]
 
     # Renombro columnas
     df = df.rename(columns={

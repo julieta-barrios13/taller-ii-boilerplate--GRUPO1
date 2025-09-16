@@ -10,7 +10,6 @@ nltk.download("punkt")
 nltk.download("stopwords")
 nltk.download("wordnet")
 nltk.download("omw-1.4")
-
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer, WordNetLemmatizer
@@ -100,11 +99,11 @@ def preprocess_text(text):
     return Clean_text, Tokens, Lemmas, Stems
 
 
-df = pd.read_csv("/Users/julietalujanbarrios/Desktop/TALLER II- Git/taller-ii-boilerplate--GRUPO1-1/entregas semanales/comentarios.csv")
+df = pd.read_csv("entregas semanales/comentarios.csv")
 print("Tamaño del dataset original:", df.shape)
 
 # Aplicar procesamiento
-df[["Review_clean", "Tokens", "Lemmas", "Stems"]] = df["Comentario"].apply(
+df[["Review_clean", "Tokens", "Lemmas", "Stems"]] = df["Comment"].apply(
     lambda x: pd.Series(preprocess_text(x))
 )
 
@@ -112,7 +111,7 @@ df[["Review_clean", "Tokens", "Lemmas", "Stems"]] = df["Comentario"].apply(
 df["Topic"] = df["Lemmas"].apply(detect_topic)
 
 # Mostrar primeras filas
-print(df[["Comentario", "Review_clean", "Tokens", "Lemmas", "Stems", "Topic"]].head(10))
+print(df[["Comment", "Review_clean", "Tokens", "Lemmas", "Stems", "Topic"]].head(10))
 
 # Guardar CSV limpio
 df.to_csv("comentarios_preprocesados.csv", index=False)
