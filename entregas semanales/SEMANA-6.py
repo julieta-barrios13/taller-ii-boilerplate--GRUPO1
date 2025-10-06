@@ -10,13 +10,13 @@ from sklearn.metrics import classification_report, confusion_matrix, f1_score, a
 # 1) Cargar
 df = pd.read_csv("entregas semanales/comentarios_preprocesados.csv")
 
-# Mostrar columnas por si acaso
+# Mostrar columnas
 print("Columnas del CSV:", list(df.columns))
 
 # Elegir columna de texto disponible
 text_col = "Review_clean" if "Review_clean" in df.columns else "Comment"
 
-# Si NO existe 'Sentiment', lo creamos desde 'Score'
+# Al no existir 'Sentiment', lo creamos desde 'Score'
 if "Sentiment" in df.columns:
     y = df["Sentiment"].astype(str)
 else:
@@ -51,7 +51,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 print("Distribución y_train:", Cn(y_train))
 print("Distribución y_test :", Cn(y_test))
 
-# 3) Vectorizadores (seguí con lo que ya tenías)
+# 3) Vectorizadores 
 vectorizers = {
     "BoW": CountVectorizer(max_features=10000, ngram_range=(1,2)),
     "TFIDF": TfidfVectorizer(max_features=10000, ngram_range=(1,2)),
@@ -99,7 +99,7 @@ print("\n=== Baseline (clase mayoritaria) ===")
 print(classification_report(y_test, y_base, digits=3))
 
 
-# 6) Entrenar y evaluar todo
+# 6) Entrenamos y evaluamos todo
 
 rows = []
 
