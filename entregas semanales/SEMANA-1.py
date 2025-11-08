@@ -1,7 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
-import pandas as pd  
+import pandas as pd
 import re
+import time
 
 url = 'https://www.trustpilot.com/review/www.airbnb.com'
 respuesta = requests.get(url)
@@ -26,23 +27,24 @@ while respuesta.status_code == 200:
         comentario = comentario_tag.get_text(strip=True) if comentario_tag else 'Sin comentario'
 
         articulos_completos.append({
-            "Título": titulo,
-            "Comentario": comentario,
-            "Puntaje": puntaje
+            "Title": titulo,
+            "Comment": comentario,
+            "Qualification": puntaje
         })
     
     page += 1
     url = f'https://www.trustpilot.com/review/www.airbnb.com?page={page}'
+    time.sleep(3) # Espera 3 segundos antes de la siguiente consulta
     respuesta = requests.get(url)
 
 # Convertir a DataFrame
 df = pd.DataFrame(articulos_completos)
 
 #Agregar índice con número de reseña (arranca en 1)
-df.insert(0, "N° Reseña", range(1, len(df) + 1))
+df.insert(0, "Id", range(1, len(df) + 1))
 
 #Crear columna con el número de estrellas (extraer solo el número antes de "out")
-df["Puntaje (estrellas)"] = df["Puntaje"].apply(
+df["Score"] = df["Qualification"].apply(
     lambda x: int(re.search(r"(\d+)", x).group(1)) if re.search(r"(\d+)", x) else None
 )
 
