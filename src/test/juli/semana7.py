@@ -1,0 +1,282 @@
+import pandas as pd
+from collections import Counter
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import LinearSVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import classification_report, confusion_matrix, f1_score, accuracy_score
+from sklearn.preprocessing import LabelEncoder
+from xgboost import XGBClassifier
+
+stopwords = [
+'able','accept','accepted','access','accommodation','accommodations','accomodation',
+'according','account','across','action','actual','actually','add','added','additional',
+'address','advance','advertised','advertising','advice','advise','advised','agent',
+'agents','ago','agree','agreed','ahead','air','airbb','airbnb','airbnbs','allow',
+'allowed','allowing','almost','alone','along','already','also','alternative',
+'although','always','amount','another','answer','answers','anyone','anything',
+'anyway','anywhere','apartment','apartments','apparently','april','area','around',
+'arrival','arrive','arrived','arriving','ask','asked','asking','assistance','attempt',
+'august','automated','available','aware','away','back','bank','based','basic',
+'basically','bathroom','bb','became','become','behind','believe','beyond','big','bit',
+'block','building','business','calendar','call','called','calling','calls','came',
+'car','card','care','careful','case','cases','cash','center','centre','chance',
+'change','changed','charge','charged','charges','charging','chat','check','checked',
+'checkin','checking','children','choice','choose','chose','city','claim','claimed',
+'claiming','claims','clean','cleaned','cleaning','clear','clearly','clients','close',
+'closed','code','come','comes','comfortable','coming','communicate','communication',
+'community','companies','company','complete','completely','condition','conditions',
+'confirm','confirmation','confirmed','consider','considering','consumer','contact',
+'contacted','contacting','continue','contract','control','conversation','correct',
+'cost','costs','could','country','couple','course','cover','covered','covid','credit',
+'customer','customers','cut','date','dates','day','days','dealing','dealt','decided',
+'decision','declined','delete','deleted','department','deposit','described',
+'description','despite','details','difference','different','direct','directly',
+'documentation','dollars','done','door','double','drive','due','early','easily',
+'easy','either','else','elsewhere','email','emailed','emails','emergency','end',
+'ended','english','enough','entire','especially','etc','euros','even','evening',
+'eventually','ever','every','everyone','everything','everywhere','evidence',
+'exactly','except','expect','expected','experience','experienced','experiences',
+'explain','explained','explanation','extra','face','fact','family','far','fee','fees',
+'find','finding','fine','first','five','fix','flat','flight','flights','floor',
+'follow','followed','following','food','forward','found','four','free','friend',
+'friends','front','full','fully','funds','furniture','future','get','gets','getting',
+'give','given','giving','go','goes','going','gone','got','government','group','guest',
+'guests','happen','happened','happens','hard','hear','heard','help','helped','helping',
+'hold','holiday','home','homes','hope','host','hosted','hosting','hosts','hour','hours',
+'house','however','hrs','human','husband','idea','immediately','important','included',
+'including','info','information','informed','inside','instead','insurance','interest',
+'interested','internet','involved','issue','issues','items','job','july','june','keep',
+'keeping','kept','key','keys','kids','kind','kitchen','knew','know','lack','lady',
+'landlord','large','last','late','later','least','leave','leaving','left','legal',
+'less','let','level','life','like','line','link','list','listed','listing','listings',
+'literally','little','live','living','local','location','lock','locked','london',
+'long','longer','look','looked','looking','looks','lose','lost','lot','lots','low',
+'made','main','major','make','makes','making','man','managed','management','manager',
+'many','march','matter','may','maybe','mean','means','meant','meet','member','mention',
+'mentioned','mess','message','messaged','messages','messaging','met','middle','might',
+'mind','minute','minutes','money','month','months','morning','move','moved','much',
+'multiple','must','name','near','nearly','need','needed','needs','new','next','night',
+'nights','nobody','non','none','note','nothing','notice','noticed','notified','nowhere',
+'number','numerous','obviously','offer','offered','offering','often','ok','old','one',
+'ones','online','open','opened','option','options','order','original','others','outside',
+'overall','owner','owners','page','paid','pandemic','paris','parking','part','partial',
+'party','passport','past','pay','paying','payment','payments','paypal','people','per',
+'period','person','personal','phone','photo','photos','picture','pictures','place',
+'places','planned','plans','platform','please','plus','pm','pocket','point','police',
+'policies','policy','pool','post','posted','previous','price','prices','prior','private',
+'probably','process','professional','profile','proper','properly','properties','property',
+'prove','provide','provided','providing','public','put','question','questions','quickly',
+'quite','rate','rather','rating','reach','reached','read','reading','ready','reason',
+'reasonable','reasons','receive','received','receiving','recent','recently','regarding',
+'remove','removed','rent','rental','rentals','rented','renter','renters','renting',
+'replied','reply','report','reported','representative','request','requested','requests',
+'required','reservation','reservations','reserved','resolution','respect','respond',
+'responded','response','responses','responsibility','responsible','result','return',
+'returned','review','reviews','room','rooms','rules','run','running','safe','safety',
+'said','save','see','seem','seemed','seems','seen','send','sending','sense','sent',
+'service','services','set','several','share','shared','short','show','showed','shower',
+'showing','shows','side','similar','simple','simply','since','single','site','sites',
+'situation','sleep','small','someone','something','somewhere','soon','sort','space',
+'speak','spend','spent','spoke','staff','standard','standards','star','stars','start',
+'started','state','stated','states','stating','stay','stayed','staying','stays','still',
+'stop','story','straight','street','submitted','superhost','support','supposed','sure',
+'system','take','taken','takes','taking','talk','talking','team','tell','telling',
+'terms','text','th','therefore','thing','things','think','thinking','third','though',
+'thought','thousands','three','ticket','time','times','today','together','toilet',
+'told','took','top','total','touch','towards','towels','town','trash','travel',
+'traveling','travelling','treat','tried','trip','trouble','true','trust','try','trying',
+'turn','turned','tv','twice','two','type','uk','unable','unless','unit','update','upon',
+'use','used','user','users','using','vacation','value','verification','verified','verify',
+'via','video','view','villa','visit','voucher','wait','waited','waiting','want','wanted',
+'wants','warning','water','way','website','week','weekend','weeks','well','went',
+'whatsoever','whether','whole','wife','wifi','willing','window','windows','within',
+'without','word','work','worked','working','works','world','write','writing','written',
+'year','years','yes','yet','young','zero','bnb','app','hostel','hostels','aircnc','air',
+'book','booked','booking','bookingcom','bookings'
+]
+
+# 1) Cargar CSV
+df = pd.read_csv("/Users/julietalujanbarrios/Desktop/TALLER II- Git/taller-ii-boilerplate--GRUPO1-1/entregas semanales/comentarios_balanceados.csv")
+
+print("Columnas del CSV:", list(df.columns))
+
+# Columna de texto
+text_col = "Review_clean" if "Review_clean" in df.columns else "Comment"
+
+# Crear o usar 'Sentiment'
+if "Sentiment" in df.columns:
+    y = df["Sentiment"].astype(str)
+else:
+    if "Score" not in df.columns:
+        raise ValueError("No existen columnas 'Sentiment' ni 'Score' en el CSV.")
+
+    score = pd.to_numeric(df["Score"], errors="coerce")
+    mask = score.notna() & df[text_col].notna() & (df[text_col].astype(str).str.strip() != "")
+    df = df.loc[mask].copy()
+    score = score.loc[mask]
+
+    def map_sentiment(s):
+        if s <= 2: return "NEGATIVO"
+        elif s == 3: return "NEUTRAL"
+        else: return "POSITIVO"
+    df["Sentiment"] = score.apply(map_sentiment)
+    y = df["Sentiment"].astype(str)
+
+X_text = df[text_col].astype(str).fillna("")
+
+# 2) Split
+counts = Counter(y)
+can_stratify = all(c >= 2 for c in counts.values())
+X_train, X_test, y_train, y_test = train_test_split(
+    X_text, y, test_size=0.2, random_state=42, stratify=y if can_stratify else None
+)
+print("Distribución y_train:", Counter(y_train))
+print("Distribución y_test :", Counter(y_test))
+
+# === NUEVO: Codificar etiquetas ===
+le = LabelEncoder()
+y_train_enc = le.fit_transform(y_train)
+y_test_enc = le.transform(y_test)
+
+# 3) Vectorizadores
+vectorizers = {
+    "BoW": CountVectorizer(max_features=20000, ngram_range=(1,2),stop_words=stopwords),
+    "TFIDF": TfidfVectorizer(max_features=20000, ngram_range=(1,2),stop_words=stopwords),
+}
+
+# 4) Modelos y sus hiperparámetros
+experiments = {
+    "Naive Bayes": [
+        MultinomialNB(alpha=1.0),
+        MultinomialNB(alpha=0.1),
+        MultinomialNB(alpha=0.01),
+    ],
+    "Logistic Regression": [
+        LogisticRegression(max_iter=100,  class_weight="balanced", multi_class="ovr"),
+        LogisticRegression(max_iter=1000, class_weight="balanced", multi_class="ovr"),
+    ],
+    "SVM": [
+        LinearSVC(C=1.0, class_weight="balanced"),
+        LinearSVC(C=2.0, class_weight="balanced"),
+    ],
+    "Random Forest": [
+        RandomForestClassifier(n_estimators=100, max_depth=None, class_weight="balanced", random_state=42),
+        RandomForestClassifier(n_estimators=300, max_depth=20, class_weight="balanced", random_state=42),
+    ],
+    "MLP (Red Neuronal)": [
+        MLPClassifier(hidden_layer_sizes=(100,), max_iter=300, random_state=42),
+        MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', max_iter=500, random_state=42),
+    ],
+    "XGBoost": [
+        XGBClassifier(
+            n_estimators=200,
+            max_depth=6,
+            learning_rate=0.1,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            objective="multi:softmax",
+            num_class=len(set(y)),
+            random_state=42,
+            use_label_encoder=False,
+            eval_metric="mlogloss"
+        ),
+        XGBClassifier(
+            n_estimators=300,
+            max_depth=10,
+            learning_rate=0.05,
+            subsample=0.9,
+            colsample_bytree=0.9,
+            objective="multi:softmax",
+            num_class=len(set(y)),
+            random_state=42,
+            use_label_encoder=False,
+            eval_metric="mlogloss"
+        ),
+    ]
+}
+
+# 5) Baseline
+maj = Counter(y_train).most_common(1)[0][0]
+y_base = [maj] * len(y_test)
+print("\n=== Baseline (clase mayoritaria) ===")
+print(classification_report(y_test, y_base, digits=3))
+
+# 6) Entrenamiento y evaluación
+rows = []
+
+for vec_name, vec in vectorizers.items():
+    print(f"\n\n>>> Vectorizador: {vec_name}")
+    Xtr = vec.fit_transform(X_train)
+    Xte = vec.transform(X_test)
+
+    for family, models in experiments.items():
+        for m in models:
+            name = f"{m.__class__.__name__} ({vec_name})"
+            print(f"\nEntrenando {name} ...")
+
+            # Entrenar con etiquetas codificadas
+            m.fit(Xtr, y_train_enc)
+
+            # Predecir y decodificar etiquetas
+            y_pred_enc = m.predict(Xte)
+            y_pred = le.inverse_transform(y_pred_enc)
+
+            acc = accuracy_score(y_test, y_pred)
+            f1m = f1_score(y_test, y_pred, average="macro")
+            f1w = f1_score(y_test, y_pred, average="weighted")
+
+            print(f"Accuracy: {acc:.3f} | Macro-F1: {f1m:.3f} | Weighted-F1: {f1w:.3f}")
+            print("Reporte de clasificación:\n", classification_report(y_test, y_pred, digits=3))
+            print("Matriz de confusión:\n", confusion_matrix(y_test, y_pred))
+
+            rows.append({
+                "Familia": family,
+                "Modelo": m.__class__.__name__,
+                "Vectorización": vec_name,
+                "Accuracy": acc,
+                "Macro-F1": f1m,
+                "Weighted-F1": f1w,
+            })
+
+# 7) Resultados finales
+resultados = pd.DataFrame(rows).sort_values(by=["Macro-F1","Weighted-F1"], ascending=False)
+print("\n\n=== Comparación de modelos (ordenado por Macro-F1) ===")
+print(resultados[["Familia","Modelo","Vectorización","Accuracy","Macro-F1","Weighted-F1"]].to_string(index=False))
+
+# 8) Identificar el mejor modelo y justificar
+mejor = resultados.iloc[0]
+
+print("\n\n=== MEJOR MODELO ===")
+print(f"Familia: {mejor['Familia']}")
+print(f"Modelo: {mejor['Modelo']}")
+print(f"Vectorización: {mejor['Vectorización']}")
+print(f"Accuracy: {mejor['Accuracy']:.3f}")
+print(f"Macro-F1: {mejor['Macro-F1']:.3f}")
+print(f"Weighted-F1: {mejor['Weighted-F1']:.3f}")
+
+if "Random Forest" in mejor["Familia"]:
+    razon = ("Random Forest suele rendir bien porque combina múltiples árboles de decisión, "
+             "reduciendo el sobreajuste y capturando interacciones no lineales entre las palabras.")
+elif "MLP" in mejor["Familia"]:
+    razon = ("La red neuronal (MLP) aprende representaciones complejas del texto y puede captar patrones "
+             "no lineales entre los vectores de palabras, mejorando el rendimiento en textos con matices.")
+elif "XGBoost" in mejor["Familia"]:
+    razon = ("XGBoost destaca por su capacidad para optimizar el error de clasificación mediante boosting, "
+             "combinando múltiples modelos débiles y ajustando pesos para enfocarse en los ejemplos más difíciles.")
+elif "SVM" in mejor["Familia"]:
+    razon = ("El SVM logra buenos resultados en texto porque maximiza los márgenes entre clases en un espacio "
+             "de alta dimensión, algo ideal cuando se usan vectores TF-IDF o n-gramas.")
+elif "Logistic Regression" in mejor["Familia"]:
+    razon = ("La regresión logística ofrece un buen equilibrio entre interpretabilidad y rendimiento, "
+             "especialmente cuando las clases están balanceadas y las características son linealmente separables.")
+elif "Naive Bayes" in mejor["Familia"]:
+    razon = ("Naive Bayes es eficiente y suele funcionar bien con texto porque asume independencia entre palabras, "
+             "lo que simplifica el modelo y reduce el riesgo de sobreajuste en conjuntos grandes.")
+else:
+    razon = "Este modelo obtuvo el mejor puntaje global en F1, reflejando una buena capacidad de generalización."
+
+print(f"\n Justificación: {razon}")

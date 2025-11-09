@@ -213,3 +213,4 @@ for vec_name, vec in vectorizers.items():
 resultados = pd.DataFrame(rows).sort_values(by=["Macro-F1","Weighted-F1"], ascending=False)
 print("\n\n=== Comparación de modelos (ordenado por Macro-F1) ===")
 print(resultados[["Modelo","Vectorización","Hiperparámetros","Accuracy","Macro-F1","Weighted-F1"]].to_string(index=False))
+
