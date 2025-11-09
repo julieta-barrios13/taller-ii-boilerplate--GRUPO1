@@ -1,89 +1,64 @@
-# Comparación entre GridSearchCV y RandomizedSearchCV para optimizar el modelo SVM + TF-IDF ("El mejor")
-
 import pandas as pd
-from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import LinearSVC
-from sklearn.pipeline import Pipeline
+from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import classification_report
-from scipy.stats import uniform
+import joblib
 import time
 
-# Cargo y preparo dataset
-df = pd.read_csv("entregas semanales/comentarios_preprocesados.csv")
-text_col = "Review_clean" if "Review_clean" in df.columns else "Comment"
+# 1️⃣ Cargar dataset balanceado
+df = pd.read_csv("entregas semanales/comentarios_balanceados.csv")
 
-if "Sentiment" not in df.columns:
-    def map_sentiment(score):
-        if score <= 2: return "NEGATIVO"
-        elif score == 3: return "NEUTRAL"
-        else: return "POSITIVO"
-    df["Sentiment"] = df["Score"].apply(map_sentiment)
-
-X = df[text_col].astype(str)
+X = df["Review_clean"].astype(str)
 y = df["Sentiment"].astype(str)
 
+# 2️⃣ Dividir train/test
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
 
-# Pipeline base
-pipeline = Pipeline([
-    ('tfidf', TfidfVectorizer()),
-    ('svm', LinearSVC(class_weight='balanced', random_state=42))
-])
+# 3️⃣ Vectorización TF-IDF
+vectorizer = TfidfVectorizer(max_features=8000, ngram_range=(1, 2))
+X_train_vec = vectorizer.fit_transform(X_train)
+X_test_vec = vectorizer.transform(X_test)
 
-# Grillas de parámetros
+# 4️⃣ Modelo base MLP
+mlp = MLPClassifier(max_iter=300, random_state=42)
+
+# 5️⃣ Grilla de hiperparámetros reducida (para que no tarde horas)
 param_grid = {
-    'tfidf__max_features': [5000, 10000, 20000],
-    'tfidf__ngram_range': [(1,1), (1,2)],
-    'svm__C': [0.1, 0.5, 1, 2, 5],
-    'svm__loss': ['hinge', 'squared_hinge']
+    "hidden_layer_sizes": [(64,), (128,), (64, 32)],
+    "activation": ["relu", "tanh"],
+    "solver": ["adam"],
+    "learning_rate_init": [0.001, 0.01],
 }
 
-param_distributions = {
-    'tfidf__max_features': [3000, 5000, 10000, 20000],
-    'tfidf__ngram_range': [(1,1), (1,2)],
-    'svm__C': uniform(0.1, 5.0),
-    'svm__loss': ['hinge', 'squared_hinge']
-}
-
-# Entreno con grid search
-print("\n=== OPTIMIZACIÓN CON GRID SEARCH ===")
+# 6️⃣ Grid Search
+print("\n=== OPTIMIZACIÓN MLP ===")
 start = time.time()
-grid = GridSearchCV(pipeline, param_grid, cv=5, scoring='f1_macro', n_jobs=-1, verbose=2)
-grid.fit(X_train, y_train)
+grid = GridSearchCV(
+    mlp,
+    param_grid=param_grid,
+    cv=3,
+    scoring="f1_macro",
+    n_jobs=-1,
+    verbose=2
+)
+grid.fit(X_train_vec, y_train)
 grid_time = time.time() - start
 
-# Evaluo grid search
-y_pred_grid = grid.best_estimator_.predict(X_test)
-print("\n>> Mejor configuración (GRID):", grid.best_params_)
-print(">> Mejor F1 macro (CV=5):", grid.best_score_)
-print(">> Tiempo de ejecución: %.2f s" % grid_time)
-print(classification_report(y_test, y_pred_grid, digits=3))
+print("\n✅ Mejores hiperparámetros encontrados:")
+print(grid.best_params_)
+print(f"⏱️ Tiempo total: {grid_time/60:.1f} minutos")
+print("F1 macro promedio:", round(grid.best_score_, 3))
 
-# Entreno con random search
-print("\n=== OPTIMIZACIÓN CON RANDOM SEARCH ===")
-start = time.time()
-random = RandomizedSearchCV(
-    pipeline, param_distributions, n_iter=10, cv=5, scoring='f1_macro', n_jobs=-1, verbose=2, random_state=42
-)
-random.fit(X_train, y_train)
-random_time = time.time() - start
+# 7️⃣ Evaluación final
+best_mlp = grid.best_estimator_
+y_pred = best_mlp.predict(X_test_vec)
+print("\n=== RESULTADOS EN TEST ===")
+print(classification_report(y_test, y_pred, digits=3))
 
-# Evaluo random search
-y_pred_random = random.best_estimator_.predict(X_test)
-print("\n>> Mejor configuración (RANDOM):", random.best_params_)
-print(">> Mejor F1 macro (CV=5):", random.best_score_)
-print(">> Tiempo de ejecución: %.2f s" % random_time)
-print(classification_report(y_test, y_pred_random, digits=3))
-
-# Comparo finalmente ambos metodos
-data = {
-    "Método": ["GridSearchCV", "RandomizedSearchCV"],
-    "F1_macro_CV": [grid.best_score_, random.best_score_],
-    "Tiempo (s)": [grid_time, random_time],
-}
-resumen = pd.DataFrame(data)
-print("\n=== COMPARACIÓN FINAL ===")
-print(resumen)
+# 8️⃣ Guardar modelo y vectorizador
+joblib.dump(vectorizer, "src/test/vectorizador_tfidf.pkl")
+joblib.dump(best_mlp, "src/test/modelo_mlp.pkl")
+print("\n💾 Modelo y vectorizador guardados en src/test/")

@@ -23,7 +23,7 @@ def preprocess_text(text):
 # Load trained model and vectorizer
 # =====================================================
 vectorizer = joblib.load("src/test/vectorizador_tfidf.pkl")
-model = joblib.load("src/test/modelo_lr.pkl")
+model = joblib.load("src/test/modelo_mlp.pkl")
 
 # =====================================================
 # Prediction function
