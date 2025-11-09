@@ -100,7 +100,7 @@ stopwords = [
 ]
 
 # 1) Cargar CSV
-df = pd.read_csv("entregas semanales/comentarios_preprocesados.csv")
+df = pd.read_csv("entregas semanales/comentarios_balanceados.csv")
 
 print("Columnas del CSV:", list(df.columns))
 
