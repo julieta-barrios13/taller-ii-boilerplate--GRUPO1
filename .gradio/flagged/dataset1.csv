@@ -1,0 +1,5 @@
+component 0,Sentiment Prediction,Model Probabilities,timestamp
+"I really enjoyed the stay, everything was nice and tidy","{""label"": null, ""confidences"": null}",,2025-11-09 17:53:26.049552
+it was really good,"{""label"": ""positive"", ""confidences"": null}","{""negative"": 0, ""neutral"": 0.001, ""positive"": 0.999}",2025-11-09 18:19:42.142907
+"it was really good
+","{""label"": ""positive"", ""confidences"": null}","{""negative"": 0, ""neutral"": 0.001, ""positive"": 0.999}",2025-11-09 18:51:42.308546
