@@ -43,14 +43,15 @@ def predict_sentiment(text):
 # =====================================================
 if __name__ == "__main__":
     examples = [
-    "The place was spotless and the host was very friendly.",
-    "We waited two hours for check-in, totally unacceptable.",
+    "The apartment was cozy and perfectly clean, I loved it!",
+    "The sheets were dirty and the air conditioner didn’t work.",
     "Pretty average stay — not bad, but not impressive either.",
-    "The view from the balcony was absolutely stunning!",
-    "Customer service was terrible, they never answered my messages.",
-    "Great location close to the subway, would stay again.",
-    "It was fine, just like the pictures, nothing special though.",
-    "The bathroom was small and smelled bad, but the bed was comfortable."
+    "Decent place overall, but the walls were quite thin.",
+    "Absolutely perfect stay! Modern, quiet, and beautifully decorated.",
+    "Extremely noisy at night, I couldn’t sleep at all.",
+    "Check-in was smooth, but the apartment felt smaller than expected.",
+    "Fantastic experience — everything worked smoothly and the host was super helpful.",
+    "The pictures were totally misleading, very disappointed.",
 ]
 
     for text in examples:
